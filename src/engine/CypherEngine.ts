@@ -7,31 +7,21 @@ import { PathRange } from '../models/PathRange';
 
 export class CypherEngine {
   private readonly _cypher: Cypher[];
-  private readonly _elementsTenancy = 'Elements';
-  private readonly _tenancy: string[] = [];
   private readonly _nodes: string[];
-  private readonly _replace = '{#tenant#}';
 
-  constructor(...tenancy: string[]) {
+  constructor() {
     this._cypher = [];
-    for (const tenant of tenancy) {
-      this._tenancy.push('`' + tenant + '`');
-    }
     this._nodes = [];
   }
 
   public get cypher(): string {
-    return `CYPHER runtime=slotted\n${this.cypherRaw}`;
-  }
-
-  public get cypherRaw(): string {
     let baseCypher: string = '';
 
     for (let i = 0; i < this._cypher.length; i++) {
       const cypher = this._cypher[i];
       baseCypher += i < this._cypher.length - 1 ? `${cypher.cypher}${cypher.seperator}` : cypher.cypher;
     }
-    return this._tenancy.length ? this.processTenancy(baseCypher) : baseCypher;
+    return baseCypher;
   }
 
   public match(): CypherEngine {
@@ -66,27 +56,17 @@ export class CypherEngine {
   }
 
   public merge(): CypherEngine {
-    if (this._tenancy.length > 1) {
-      throw new Error('Only exactly one or none tenancy is allowed for merge');
-    }
+
     this._cypher.push(new Cypher('MERGE', ' '));
     return this;
   }
 
   public create(): CypherEngine {
-    if (this._tenancy.length > 1) {
-      throw new Error('Only exactly one or none tenancy is allowed for create');
-    }
     this._cypher.push(new Cypher('CREATE', ' '));
     return this;
   }
 
   public node(labels: string[], variableName?: string, ...properties: Property[]): CypherEngine {
-    if (!this._tenancy || !this._tenancy.length) {
-      throw new Error('Tenancy is required for this operation');
-    }
-
-    labels.unshift(this._elementsTenancy, this._replace);
     this._cypher.push(new Cypher(this.nodeString(labels, variableName, ...properties)));
     if (variableName) {
       this._nodes.push(variableName);
@@ -100,15 +80,6 @@ export class CypherEngine {
       throw new Error(`Could not find node ${variableName}`);
     }
     this._cypher.push(new Cypher(this.nodeString(additionalLabels, variableName)));
-    return this;
-  }
-
-  public nodeTenantless(labels: string[], variableName?: string, ...properties: Property[]): CypherEngine {
-    labels.unshift(this._elementsTenancy);
-    this._cypher.push(new Cypher(this.nodeString(labels, variableName, ...properties)));
-    if (variableName) {
-      this._nodes.push(variableName);
-    }
     return this;
   }
 
@@ -231,7 +202,7 @@ export class CypherEngine {
   }
 
   public callQuery(engine: CypherEngine): CypherEngine {
-    this._cypher.push(new Cypher(`CALL {${engine.cypherRaw}}`));
+    this._cypher.push(new Cypher(`CALL {${engine.cypher}}`));
     return this;
   }
 
@@ -348,20 +319,6 @@ export class CypherEngine {
       }
     }
     return statement;
-  }
-
-  private processTenancy(baseCypher: string): string {
-    let cypherBuilder: string = '';
-
-    for (let j = 0; j < this._tenancy.length; j++) {
-      const tenant = this._tenancy[j];
-      cypherBuilder += baseCypher.replace(new RegExp(this._replace, 'g'), tenant);
-
-      if (j < this._tenancy.length - 1) {
-        cypherBuilder += '\nUNION ';
-      }
-    }
-    return cypherBuilder;
   }
 
   public orderBy(variableNames: string[], sorts?: Array<{ prop: string; asc: boolean }>, includePhrase: boolean = true) {

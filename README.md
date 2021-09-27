@@ -6,6 +6,10 @@
 ## Premise
 This documentation **does not** explain how *Cypher* works nor does it try to be a tutorial for *Cypher*. When using this library it is recommended that you have a good understanding of the *Cypher* language. Please see the [Cyper Documentation](https://neo4j.com/docs/cypher-manual/current/) for more information.
 
+## Usage
+```
+npm i cypher-engine
+```
 ## Index
 * [Create](#create)
 * [Delete](#delete)

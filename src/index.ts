@@ -36,7 +36,7 @@ const match2 = engine
     .toString();
 
 // MATCH (wallstreet:Movie {title: 'Wall Street'})<-[:ACTED_IN]-(actor)
-//RETURN actor.name
+// RETURN actor.name
 /* tslint:disable-next-line */
 console.log(match2);
 

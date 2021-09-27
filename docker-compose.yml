@@ -4,6 +4,8 @@ services:
   neo4j:
     image: neo4j:latest
     network_mode: "bridge"
+    environment:
+      NEO4J_AUTH: 'neo4j/123'
     ports:
       - "7474:7474"
       - "7687:7687"

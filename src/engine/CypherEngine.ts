@@ -1,11 +1,11 @@
-import { INeoFunction } from './../interfaces/INeoFunction';
-import { NeoSetProperty } from '../models/NeoSetProperty';
+import { ICypherFunction } from '../interfaces/ICypherFunction';
+import { SetProperty } from '../models/SetProperty';
 import { RelationshipDirection } from '../models/RelationshipDirection';
-import { NeoProperty } from '../models/NeoProperty';
-import { Cypher } from './../models/Cypher';
-import { PathRange } from './../models/PathRange';
+import { Property } from '../models/Property';
+import { Cypher } from '../models/Cypher';
+import { PathRange } from '../models/PathRange';
 
-export class NeoEngine {
+export class CypherEngine {
   private readonly _cypher: Cypher[];
   private readonly _elementsTenancy = 'Elements';
   private readonly _tenancy: string[] = [];
@@ -34,18 +34,18 @@ export class NeoEngine {
     return this._tenancy.length ? this.processTenancy(baseCypher) : baseCypher;
   }
 
-  public match(): NeoEngine {
+  public match(): CypherEngine {
     this._cypher.push(new Cypher('MATCH', ' '));
     return this;
   }
 
-  public optionalMatch(): NeoEngine {
+  public optionalMatch(): CypherEngine {
     this._cypher.push(new Cypher('OPTIONAL', ' '));
     this.match();
     return this;
   }
 
-  public conditional(ifStatement: boolean | undefined, query: string, elseQuery: string): NeoEngine {
+  public conditional(ifStatement: boolean | undefined, query: string, elseQuery: string): CypherEngine {
     if (ifStatement) {
       this.value(query);
     } else {
@@ -55,7 +55,7 @@ export class NeoEngine {
     return this;
   }
 
-  public conditionalFunc(ifStatement: boolean | undefined, query: INeoFunction, elseQuery: INeoFunction): NeoEngine {
+  public conditionalFunc(ifStatement: boolean | undefined, query: ICypherFunction, elseQuery: ICypherFunction): CypherEngine {
     if (ifStatement) {
       query(this);
     } else {
@@ -65,7 +65,7 @@ export class NeoEngine {
     return this;
   }
 
-  public merge(): NeoEngine {
+  public merge(): CypherEngine {
     if (this._tenancy.length > 1) {
       throw new Error('Only exactly one or none tenancy is allowed for merge');
     }
@@ -73,7 +73,7 @@ export class NeoEngine {
     return this;
   }
 
-  public create(): NeoEngine {
+  public create(): CypherEngine {
     if (this._tenancy.length > 1) {
       throw new Error('Only exactly one or none tenancy is allowed for create');
     }
@@ -81,7 +81,7 @@ export class NeoEngine {
     return this;
   }
 
-  public node(labels: string[], variableName?: string, ...properties: NeoProperty[]): NeoEngine {
+  public node(labels: string[], variableName?: string, ...properties: Property[]): CypherEngine {
     if (!this._tenancy || !this._tenancy.length) {
       throw new Error('Tenancy is required for this operation');
     }
@@ -94,7 +94,7 @@ export class NeoEngine {
     return this;
   }
 
-  public declaredNode(variableName: string, ...additionalLabels: string[]): NeoEngine {
+  public declaredNode(variableName: string, ...additionalLabels: string[]): CypherEngine {
     const node = this._nodes.find((x) => x === variableName);
     if (!node) {
       throw new Error(`Could not find node ${variableName}`);
@@ -103,7 +103,7 @@ export class NeoEngine {
     return this;
   }
 
-  public nodeTenantless(labels: string[], variableName?: string, ...properties: NeoProperty[]): NeoEngine {
+  public nodeTenantless(labels: string[], variableName?: string, ...properties: Property[]): CypherEngine {
     labels.unshift(this._elementsTenancy);
     this._cypher.push(new Cypher(this.nodeString(labels, variableName, ...properties)));
     if (variableName) {
@@ -112,12 +112,12 @@ export class NeoEngine {
     return this;
   }
 
-  public variable(variableName: string, property?: string): NeoEngine {
+  public variable(variableName: string, property?: string): CypherEngine {
     this._cypher.push(new Cypher(this.variableString(variableName, property), ' '));
     return this;
   }
 
-  public relates(types: string[], direction: RelationshipDirection, variableName?: string, range?: PathRange, ...properties: NeoProperty[]): NeoEngine {
+  public relates(types: string[], direction: RelationshipDirection, variableName?: string, range?: PathRange, ...properties: Property[]): CypherEngine {
     const variableNameStatement = variableName || '';
     const typesStatement = types.length ? ':' + types.join('|') : '';
     const relationshipRangeStatement = range ? range!.toString() : '';
@@ -139,7 +139,7 @@ export class NeoEngine {
     return this;
   }
 
-  public delete(variableName: string, ...furtherNames: string[]): NeoEngine {
+  public delete(variableName: string, ...furtherNames: string[]): CypherEngine {
     const variables: string[] = [];
     variables.push(variableName);
     variables.push(...furtherNames);
@@ -148,24 +148,24 @@ export class NeoEngine {
     return this;
   }
 
-  public where(): NeoEngine {
+  public where(): CypherEngine {
     this._cypher.push(new Cypher('WHERE', ' '));
     return this;
   }
 
-  public detach(): NeoEngine {
+  public detach(): CypherEngine {
     const statement = 'DETACH';
     this._cypher.push(new Cypher(statement, ' '));
     return this;
   }
 
-  public unwind(): NeoEngine {
+  public unwind(): CypherEngine {
     const statement = `UNWIND`;
     this._cypher.push(new Cypher(statement, ' '));
     return this;
   }
 
-  public with(...variableNames: string[]): NeoEngine {
+  public with(...variableNames: string[]): CypherEngine {
     if (variableNames && variableNames.length) {
       this._nodes.length = 0;
       this._nodes.push(...variableNames);
@@ -176,14 +176,14 @@ export class NeoEngine {
     return this;
   }
 
-  public exists(variableName: string, property: string): NeoEngine {
+  public exists(variableName: string, property: string): CypherEngine {
     const statement = `exists(${variableName}.${property})`;
     this._cypher.push(new Cypher(statement));
     return this;
   }
 
   //Uses raw data, add '' quotes for strings into the value
-  public value(value: string | number | string[] | number[]): NeoEngine {
+  public value(value: string | number | string[] | number[]): CypherEngine {
     let statement = '';
     if (Array.isArray(value)) {
       statement = `${JSON.stringify(value)}`;
@@ -194,110 +194,110 @@ export class NeoEngine {
     return this;
   }
 
-  public set(...properties: NeoSetProperty[]): NeoEngine {
+  public set(...properties: SetProperty[]): CypherEngine {
     const statement = `SET${properties.length ? ' ' + this.propertySetter(...properties) : ''}`;
     this._cypher.push(new Cypher(statement));
     return this;
   }
 
-  public onCreate(): NeoEngine {
+  public onCreate(): CypherEngine {
     this._cypher.push(new Cypher('ON CREATE', ' '));
     return this;
   }
 
-  public onMatch(): NeoEngine {
+  public onMatch(): CypherEngine {
     this._cypher.push(new Cypher('ON MATCH', ' '));
     return this;
   }
 
-  public and(): NeoEngine {
+  public and(): CypherEngine {
     this._cypher.push(new Cypher('AND', ' '));
     return this;
   }
 
-  public or(): NeoEngine {
+  public or(): CypherEngine {
     this._cypher.push(new Cypher('OR', ' '));
     return this;
   }
 
-  public is(): NeoEngine {
+  public is(): CypherEngine {
     this._cypher.push(new Cypher('IS', ' '));
     return this;
   }
 
-  public call(apoc: string): NeoEngine {
+  public call(apoc: string): CypherEngine {
     this._cypher.push(new Cypher(`CALL ${apoc}`));
     return this;
   }
 
-  public callQuery(engine: NeoEngine): NeoEngine {
+  public callQuery(engine: CypherEngine): CypherEngine {
     this._cypher.push(new Cypher(`CALL {${engine.cypherRaw}}`));
     return this;
   }
 
-  public in(): NeoEngine {
+  public in(): CypherEngine {
     this._cypher.push(new Cypher('IN', ' '));
     return this;
   }
 
-  public null(): NeoEngine {
+  public null(): CypherEngine {
     this._cypher.push(new Cypher('NULL', ' '));
     return this;
   }
 
-  public not(): NeoEngine {
+  public not(): CypherEngine {
     this._cypher.push(new Cypher('NOT', ' '));
     return this;
   }
 
-  public equals(): NeoEngine {
+  public equals(): CypherEngine {
     this._cypher.push(new Cypher('=', ' '));
     return this;
   }
 
-  public greaterThan(): NeoEngine {
+  public greaterThan(): CypherEngine {
     this._cypher.push(new Cypher('>', ' '));
     return this;
   }
 
-  public lessThan(): NeoEngine {
+  public lessThan(): CypherEngine {
     this._cypher.push(new Cypher('<', ' '));
     return this;
   }
 
-  public startsWith(): NeoEngine {
+  public startsWith(): CypherEngine {
     this._cypher.push(new Cypher('STARTS WITH', ' '));
     return this;
   }
 
-  public endsWith(): NeoEngine {
+  public endsWith(): CypherEngine {
     this._cypher.push(new Cypher('ENDS WITH', ' '));
     return this;
   }
 
-  public contains(): NeoEngine {
+  public contains(): CypherEngine {
     this._cypher.push(new Cypher('CONTAINS', ' '));
     return this;
   }
 
-  public regularExpression(): NeoEngine {
+  public regularExpression(): CypherEngine {
     this._cypher.push(new Cypher('=~', ' '));
     return this;
   }
 
-  public returns(...variableNames: string[]): NeoEngine {
+  public returns(...variableNames: string[]): CypherEngine {
     const statement = `RETURN ${variableNames.length ? variableNames.join(',') : '*'}`; //${limit ? `LIMIT ${limit}` : ''}
     this._cypher.push(new Cypher(statement, ' '));
     return this;
   }
 
-  public limit(limit: number | string): NeoEngine {
+  public limit(limit: number | string): CypherEngine {
     const statement = `LIMIT ${limit}`;
     this._cypher.push(new Cypher(statement, ' '));
     return this;
   }
 
-  public skip(skip: number | string): NeoEngine {
+  public skip(skip: number | string): CypherEngine {
     const statement = `SKIP ${skip}`;
     this._cypher.push(new Cypher(statement, ' '));
     return this;
@@ -307,7 +307,7 @@ export class NeoEngine {
     return this.cypher;
   }
 
-  private nodeString(labels: string[], variableName?: string, ...properties: NeoProperty[]): string {
+  private nodeString(labels: string[], variableName?: string, ...properties: Property[]): string {
     let statement = `(${variableName || ''}${labels.length ? ':' + labels.join(':') : ''}`;
     statement += this.propertyFilter(...properties);
     statement += ')';
@@ -324,7 +324,7 @@ export class NeoEngine {
     return statement;
   }
 
-  private propertySetter(...properties: NeoSetProperty[]): string {
+  private propertySetter(...properties: SetProperty[]): string {
     const variableArr: string[] = [];
     for (let k = 0; k < properties.length; k++) {
       const set = properties[k];
@@ -333,7 +333,7 @@ export class NeoEngine {
     return variableArr.join(', ');
   }
 
-  private propertyFilter(...properties: NeoProperty[]): string {
+  private propertyFilter(...properties: Property[]): string {
     let statement = '';
     for (let j = 0; j < properties.length; j++) {
       if (j === 0) {
@@ -387,27 +387,27 @@ export class NeoEngine {
     return this;
   }
 
-  public case(): NeoEngine {
+  public case(): CypherEngine {
     this._cypher.push(new Cypher('CASE', ' '));
     return this;
   }
 
-  public when(): NeoEngine {
+  public when(): CypherEngine {
     this._cypher.push(new Cypher('WHEN', ' '));
     return this;
   }
 
-  public then(): NeoEngine {
+  public then(): CypherEngine {
     this._cypher.push(new Cypher('THEN', ' '));
     return this;
   }
 
-  public remove(): NeoEngine {
+  public remove(): CypherEngine {
     this._cypher.push(new Cypher('REMOVE', ' '));
     return this;
   }
 
-  public else(): NeoEngine {
+  public else(): CypherEngine {
     this._cypher.push(new Cypher('ELSE', ' '));
     return this;
   }

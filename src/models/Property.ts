@@ -1,4 +1,4 @@
-export class NeoProperty {
+export class Property {
   public name: string;
   public value: string | number | boolean;
 

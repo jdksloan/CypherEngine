@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es2019",
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "noEmitHelpers": false,
+    "forceConsistentCasingInFileNames": true,
+    "pretty": true,
+    "inlineSourceMap": true,
+    "typeRoots": ["node_modules/@types"],
+    "types": ["node", "jest"],
+    "outDir": "./lib",
+    "module": "commonJS",
+    "moduleResolution": "node",
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "baseUrl": "src"
+  },
+  "include": ["src/**/*.spec.ts"],
+  "exclude": ["node_modules", "**/*.ts", "!node_modules/@types"],
+  "compileOnSave": true,
+  "buildOnSave": true
+}

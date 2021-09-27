@@ -92,12 +92,17 @@ export class CypherEngine {
   }
 
   public relates(
-    types: string[],
     direction: RelationshipDirection,
+    types?: string[],
     variableName?: string,
     range?: PathRange,
     ...properties: Property[]
   ): CypherEngine {
+
+    if (!types) {
+      this._cypher.push(new Cypher('--', ''));
+      return this;
+    }
     const variableNameStatement = variableName || '';
     const typesStatement = types.length ? ':' + types.join('|') : '';
     const relationshipRangeStatement = range ? range!.toString() : '';

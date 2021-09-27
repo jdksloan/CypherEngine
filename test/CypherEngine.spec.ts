@@ -4,7 +4,7 @@ import { RelationshipDirection } from '../src/models/RelationshipDirection';
 import { PathRange } from '../src/models/PathRange';
 import { CypherEngine } from './../src/engine/CypherEngine'
 
-describe('Test NeoQueryEngine', () => {
+describe('Test CypherEngine', () => {
 
   beforeEach(() => {
   });
@@ -65,27 +65,12 @@ describe('Test NeoQueryEngine', () => {
   });
 
 
-
-  test('MATCH RELATES to NODE with up to 3 nodes in between UNION Tenancy', () => {
-    const engine = new CypherEngine();
-    const result = engine
-      .match()
-      .node(['User'], 'n0', new Property('email', `'test@test.com'`))
-      .relates(['works_for'], RelationshipDirection.right, undefined, new PathRange(undefined, 3), new Property('years', 5))
-      .node(['Company'], 'n1', new Property('name', `'test'`))
-      .returns()
-      .toString();
-    expect(result).toBe(
-      `MATCH (n0:User{email:'test@test.com'})\n-[:works_for*..3{years:5}]->(n1:Company{name:'test'})\nRETURN *`
-    );
-  });
-
   test('MATCH RELATES to NODE with at least 3 nodes in between', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
       .node(['User'], 'n0', new Property('email', `'test@test.com'`))
-      .relates(['works_for'], RelationshipDirection.right, undefined, new PathRange(3, undefined), new Property('years', 5))
+      .relates(RelationshipDirection.right, ['works_for'], undefined, new PathRange(3, undefined), new Property('years', 5))
       .node(['Company'], 'n1', new Property('name', `'test'`))
       .returns()
       .toString();
@@ -97,7 +82,7 @@ describe('Test NeoQueryEngine', () => {
     const result = engine
       .match()
       .node(['User'], 'n0', new Property('email', `'test@test.com'`))
-      .relates(['works_for'], RelationshipDirection.right, undefined, undefined, new Property('years', 5))
+      .relates(RelationshipDirection.right, ['works_for'], undefined, undefined, new Property('years', 5))
       .node(['Company'], 'n1', new Property('name', `'test'`))
       .with('n0', 'n1')
       .returns()
@@ -107,12 +92,26 @@ describe('Test NeoQueryEngine', () => {
     );
   });
 
+  test('MATCH RELATES to NODE Variable undirected', () => {
+    const engine = new CypherEngine();
+    const result = engine
+      .match()
+      .node(['User'], 'u')
+      .relates(RelationshipDirection.undirected)
+      .node([], 'company')
+      .returns('u')
+      .toString();
+    expect(result).toBe(
+      `MATCH (u:User)\n--(company)\nRETURN u`
+    );
+  });
+
   test('MATCH RELATES to NODE WITH DELETE both', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
       .node(['User'], 'n0', new Property('email', `'test@test.com'`))
-      .relates(['works_for'], RelationshipDirection.left, undefined, undefined, new Property('years', 5))
+      .relates(RelationshipDirection.left, ['works_for'], undefined, undefined, new Property('years', 5))
       .node(['Company'], 'n1', new Property('name', `'test'`))
       .delete('n0', 'n1')
       .returns()
@@ -127,7 +126,7 @@ describe('Test NeoQueryEngine', () => {
     const result = engine
       .match()
       .node(['User'], 'n0', new Property('email', `'test@test.com'`))
-      .relates(['works_for'], RelationshipDirection.undirected, undefined, undefined, new Property('years', 5))
+      .relates(RelationshipDirection.undirected, ['works_for'], undefined, undefined, new Property('years', 5))
       .node(['Company'], 'n1', new Property('name', `'test'`))
       .detach()
       .delete('n0', 'n1')
@@ -138,13 +137,13 @@ describe('Test NeoQueryEngine', () => {
     );
   });
 
-  test('SET with one NeoProperty', () => {
+  test('SET with one Property', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
-      .node(['Person'], 'n0', new Property('polyglotID', '$polyglotID'))
+      .node(['Person'], 'n0', new Property('identifier', '$identifier'))
       .set(new SetProperty('n0', new Property('name', '$name'))).cypher;
-    expect(result).toBe(`MATCH (n0:Person{polyglotID:$polyglotID})\nSET n0.name = $name`);
+    expect(result).toBe(`MATCH (n0:Person{identifier:$identifier})\nSET n0.name = $name`);
   });
 
   test('MATCH WHERE', () => {
@@ -190,44 +189,27 @@ describe('Test NeoQueryEngine', () => {
     expect(result).toBe(`MATCH (n0:User)\nWHERE n0.name = $name OR n0.email CONTAINS 'test' RETURN *`);
   });
 
-  test('MATCH SET with two NeoProperty', () => {
+  test('MATCH SET with two Property', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
-      .node(['Person'], 'n0', new Property('polyglotID', '$polyglotID'))
+      .node(['Person'], 'n0', new Property('identifier', '$identifier'))
       .set(new SetProperty('n0', new Property('name', '$name')), new SetProperty('n0', new Property('birthday', '$birthday'))).cypher;
-    expect(result).toBe(`MATCH (n0:Person{polyglotID:$polyglotID})\nSET n0.name = $name, n0.birthday = $birthday`);
+    expect(result).toBe(`MATCH (n0:Person{identifier:$identifier})\nSET n0.name = $name, n0.birthday = $birthday`);
   });
 
   test('MERGE with one property return it', () => {
     const engine = new CypherEngine();
-    const result = engine.merge().node(['Person'], 'n0', new Property('polyglotID', '$polyglotID')).returns('n0').toString();
-    expect(result).toBe(`MERGE (n0:Person{polyglotID:$polyglotID})\nRETURN n0`);
-  });
-
-  test('MERGE with multi tenancy error', () => {
-    const engine = new CypherEngine();
-    try {
-      engine.merge().node(['Person'], 'n0', new Property('polyglotID', '$polyglotID')).returns('n0').toString();
-    } catch (error) {
-      expect(error.message).toBe('Only exactly one or none tenancy is allowed for merge');
-    }
+    const result = engine.merge().node(['Person'], 'n0', new Property('identifier', '$identifier')).returns('n0').toString();
+    expect(result).toBe(`MERGE (n0:Person{identifier:$identifier})\nRETURN n0`);
   });
 
   test('CREATE with one property return it', () => {
     const engine = new CypherEngine();
-    const result = engine.create().node(['Person'], 'n0', new Property('polyglotID', '$polyglotID')).returns('n0').toString();
-    expect(result).toBe(`CREATE (n0:Person{polyglotID:$polyglotID})\nRETURN n0`);
+    const result = engine.create().node(['Person'], 'n0', new Property('identifier', '$identifier')).returns('n0').toString();
+    expect(result).toBe(`CREATE (n0:Person{identifier:$identifier})\nRETURN n0`);
   });
 
-  test('MERGE with multi tenancy error', () => {
-    const engine = new CypherEngine();
-    try {
-      engine.create().node(['Person'], 'n0', new Property('polyglotID', '$polyglotID')).returns('n0').toString();
-    } catch (error) {
-      expect(error.message).toBe('Only exactly one or none tenancy is allowed for create');
-    }
-  });
 
   test('MATCH with Label using declaredNode', () => {
     const engine = new CypherEngine();
@@ -247,8 +229,8 @@ describe('Test NeoQueryEngine', () => {
 
   test('MATCH WHERE exists', () => {
     const engine = new CypherEngine();
-    const result = engine.match().node(['Person'], 'n0', new Property('polyglotID', '$polyglotID')).where().exists('n0', 'name').with().returns('n0').toString();
-    expect(result).toBe(`MATCH (n0:Person{polyglotID:$polyglotID})\nWHERE exists(n0.name)\nWITH *\nRETURN n0`);
+    const result = engine.match().node(['Person'], 'n0', new Property('identifier', '$identifier')).where().exists('n0', 'name').with().returns('n0').toString();
+    expect(result).toBe(`MATCH (n0:Person{identifier:$identifier})\nWHERE exists(n0.name)\nWITH *\nRETURN n0`);
   });
 
   test('MATCH WITH Order', () => {
@@ -331,7 +313,7 @@ describe('Test NeoQueryEngine', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
-      .node(['Person'], 'n0', new Property('polyglotID', '$polyglotID'))
+      .node(['Person'], 'n0', new Property('identifier', '$identifier'))
       .where()
       .variable('n0', 'name')
       .startsWith()
@@ -339,14 +321,14 @@ describe('Test NeoQueryEngine', () => {
       .with()
       .returns('n0')
       .toString();
-    expect(result).toBe(`MATCH (n0:Person{polyglotID:$polyglotID})\nWHERE n0.name STARTS WITH '1a' WITH *\nRETURN n0`);
+    expect(result).toBe(`MATCH (n0:Person{identifier:$identifier})\nWHERE n0.name STARTS WITH '1a' WITH *\nRETURN n0`);
   });
 
   test('MATCH WHERE ends with', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
-      .node(['Person'], 'n0', new Property('polyglotID', '$polyglotID'))
+      .node(['Person'], 'n0', new Property('identifier', '$identifier'))
       .where()
       .variable('n0', 'name')
       .endsWith()
@@ -354,14 +336,14 @@ describe('Test NeoQueryEngine', () => {
       .with()
       .returns('n0')
       .toString();
-    expect(result).toBe(`MATCH (n0:Person{polyglotID:$polyglotID})\nWHERE n0.name ENDS WITH '1a' WITH *\nRETURN n0`);
+    expect(result).toBe(`MATCH (n0:Person{identifier:$identifier})\nWHERE n0.name ENDS WITH '1a' WITH *\nRETURN n0`);
   });
 
   test('MATCH WHERE greater than with', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
-      .node(['Person'], 'n0', new Property('polyglotID', '$polyglotID'))
+      .node(['Person'], 'n0', new Property('identifier', '$identifier'))
       .where()
       .variable('n0', 'age')
       .greaterThan()
@@ -369,14 +351,14 @@ describe('Test NeoQueryEngine', () => {
       .with()
       .returns('n0')
       .toString();
-    expect(result).toBe(`MATCH (n0:Person{polyglotID:$polyglotID})\nWHERE n0.age > 5 WITH *\nRETURN n0`);
+    expect(result).toBe(`MATCH (n0:Person{identifier:$identifier})\nWHERE n0.age > 5 WITH *\nRETURN n0`);
   });
 
   test('MATCH WHERE less than with', () => {
     const engine = new CypherEngine();
     const result = engine
       .match()
-      .node(['Person'], 'n0', new Property('polyglotID', '$polyglotID'))
+      .node(['Person'], 'n0', new Property('identifier', '$identifier'))
       .where()
       .variable('n0', 'age')
       .lessThan()
@@ -384,7 +366,7 @@ describe('Test NeoQueryEngine', () => {
       .with()
       .returns('n0')
       .toString();
-    expect(result).toBe(`MATCH (n0:Person{polyglotID:$polyglotID})\nWHERE n0.age < 5 WITH *\nRETURN n0`);
+    expect(result).toBe(`MATCH (n0:Person{identifier:$identifier})\nWHERE n0.age < 5 WITH *\nRETURN n0`);
   });
 
   test('MATCH WHERE regular expression with', () => {
@@ -414,7 +396,7 @@ describe('Test NeoQueryEngine', () => {
       .value('{modelItems} as modelItem')
       .merge()
       .variable('n0')
-      .relates(['created_by'], RelationshipDirection.left)
+      .relates(RelationshipDirection.left, ['created_by'])
       .node(['ModelItem'], 'mi', new Property('name', 'modelItem.name'))
       .returns()
       .toString();

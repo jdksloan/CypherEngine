@@ -1,24 +1,38 @@
 {
   "compilerOptions": {
-    "declaration": false,
-    "esModuleInterop": true,
+    "target": "es2019",
     "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "experimentalDecorators": true,
-    "inlineSources": true,
-    "isolatedModules": false,
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "strict": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noImplicitUseStrict": false,
-    "noLib": false,
-    "outDir": "dist",
-    "preserveConstEnums": true,
+    "noEmitHelpers": false,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
     "pretty": true,
-    "removeComments": true,
-    "sourceMap": true,
-    "target": "ES2019"
+    "strict": true,
+    "inlineSourceMap": true,
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
+    "outDir": "./lib",
+    "module": "commonJS",
+    "moduleResolution": "node",
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "baseUrl": "src",
   },
-  "exclude": ["node_modules", "dist", "test"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "!node_modules/@types"
+  ],
+  "compileOnSave": true,
+  "buildOnSave": true
 }

@@ -45,7 +45,11 @@ export class CypherEngine {
     return this;
   }
 
-  public conditionalFunc(ifStatement: boolean | undefined, query: ICypherFunction, elseQuery: ICypherFunction): CypherEngine {
+  public conditionalFunc(
+    ifStatement: boolean | undefined,
+    query: ICypherFunction,
+    elseQuery: ICypherFunction,
+  ): CypherEngine {
     if (ifStatement) {
       query(this);
     } else {
@@ -56,7 +60,6 @@ export class CypherEngine {
   }
 
   public merge(): CypherEngine {
-
     this._cypher.push(new Cypher('MERGE', ' '));
     return this;
   }
@@ -88,12 +91,20 @@ export class CypherEngine {
     return this;
   }
 
-  public relates(types: string[], direction: RelationshipDirection, variableName?: string, range?: PathRange, ...properties: Property[]): CypherEngine {
+  public relates(
+    types: string[],
+    direction: RelationshipDirection,
+    variableName?: string,
+    range?: PathRange,
+    ...properties: Property[]
+  ): CypherEngine {
     const variableNameStatement = variableName || '';
     const typesStatement = types.length ? ':' + types.join('|') : '';
     const relationshipRangeStatement = range ? range!.toString() : '';
 
-    let statement = `[${variableNameStatement}${typesStatement}${relationshipRangeStatement}${this.propertyFilter(...properties)}]`;
+    let statement = `[${variableNameStatement}${typesStatement}${relationshipRangeStatement}${this.propertyFilter(
+      ...properties,
+    )}]`;
 
     switch (direction) {
       case RelationshipDirection.left:
@@ -153,7 +164,7 @@ export class CypherEngine {
     return this;
   }
 
-  //Uses raw data, add '' quotes for strings into the value
+  // Uses raw data, add '' quotes for strings into the value
   public value(value: string | number | string[] | number[]): CypherEngine {
     let statement = '';
     if (Array.isArray(value)) {
@@ -257,7 +268,7 @@ export class CypherEngine {
   }
 
   public returns(...variableNames: string[]): CypherEngine {
-    const statement = `RETURN ${variableNames.length ? variableNames.join(',') : '*'}`; //${limit ? `LIMIT ${limit}` : ''}
+    const statement = `RETURN ${variableNames.length ? variableNames.join(',') : '*'}`;
     this._cypher.push(new Cypher(statement, ' '));
     return this;
   }
@@ -297,9 +308,8 @@ export class CypherEngine {
 
   private propertySetter(...properties: SetProperty[]): string {
     const variableArr: string[] = [];
-    for (let k = 0; k < properties.length; k++) {
-      const set = properties[k];
-      variableArr.push(`${set.variableName}.${set.property.name} = ${set.property.value}`);
+    for (const prop of properties) {
+      variableArr.push(`${prop.variableName}.${prop.property.name} = ${prop.property.value}`);
     }
     return variableArr.join(', ');
   }
@@ -321,7 +331,7 @@ export class CypherEngine {
     return statement;
   }
 
-  public orderBy(variableNames: string[], sorts?: Array<{ prop: string; asc: boolean }>, includePhrase: boolean = true) {
+  public orderBy(variableNames: string[], sorts?: { prop: string; asc: boolean }[], includePhrase: boolean = true) {
     if (!sorts) {
       return this;
     }

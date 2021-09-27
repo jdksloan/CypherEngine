@@ -9,8 +9,13 @@
     "forceConsistentCasingInFileNames": true,
     "pretty": true,
     "inlineSourceMap": true,
-    "typeRoots": ["node_modules/@types"],
-    "types": ["node", "jest"],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
     "outDir": "./lib",
     "module": "commonJS",
     "moduleResolution": "node",
@@ -18,8 +23,14 @@
     "resolveJsonModule": true,
     "baseUrl": "src"
   },
-  "include": ["src/**/*.spec.ts"],
-  "exclude": ["node_modules", "**/*.ts", "!node_modules/@types"],
+  "include": [
+    "src/**/*.spec.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.ts",
+    "!node_modules/@types"
+  ],
   "compileOnSave": true,
   "buildOnSave": true
 }

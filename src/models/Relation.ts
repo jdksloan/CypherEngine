@@ -3,9 +3,9 @@ export class Relation {
   public relationtype!: string;
   public properties: any = {};
   public arrows!: {
-    to: { enabled: false; scaleFactor: [1, 0, 3, 0.05]; type: 'arrow'; };
-    middle: { enabled: false; scaleFactor: [1, 0, 3, 0.05]; type: 'arrow'; };
-    from: { enabled: false; scaleFactor: [1, 0, 3, 0.05]; type: 'arrow'; };
+    to: { enabled: false; scaleFactor: [1, 0, 3, 0.05]; type: 'arrow' };
+    middle: { enabled: false; scaleFactor: [1, 0, 3, 0.05]; type: 'arrow' };
+    from: { enabled: false; scaleFactor: [1, 0, 3, 0.05]; type: 'arrow' };
   };
   public arrowStrikethrough!: true;
   public color?: {
@@ -49,13 +49,25 @@ export class Relation {
     x: [5, -30, 30, 1];
     y: [5, -30, 30, 1];
   };
-  public smooth!: {
-    enabled: true;
-    type: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW', 'cubicBezier'];
-    forceDirection: ['horizontal', 'vertical', 'none'];
-    roundness: [0.5, 0, 1, 0.05];
-  } |
-    boolean;
+  public smooth!:
+    | {
+        enabled: true;
+        type: [
+          'dynamic',
+          'continuous',
+          'discrete',
+          'diagonalCross',
+          'straightCross',
+          'horizontal',
+          'vertical',
+          'curvedCW',
+          'curvedCCW',
+          'cubicBezier',
+        ];
+        forceDirection: ['horizontal', 'vertical', 'none'];
+        roundness: [0.5, 0, 1, 0.05];
+      }
+    | boolean;
   public width!: number;
   public to: any;
   public from: any;

@@ -1,6 +1,5 @@
 {
   "name": "cypher-engine",
-  "private": true,
   "description": "Cypher Engine to generate Cypher queries",
   "version": "1.0.0",
   "main": "lib/index.js",
